@@ -1,0 +1,15 @@
+[tool.poetry]
+name = "gdbundle-example"
+version = "0.1.0"
+description = ""
+authors = ["Tyler Hoffman <tyler@memfault.com>"]
+readme = "README.md"
+include = ["gdbundle_example/scripts/*"]
+license = "MIT"
+
+[tool.poetry.dependencies]
+python = "*"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
