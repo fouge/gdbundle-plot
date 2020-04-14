@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gdbundle-example"
-version = "0.1.0"
+version = "0.1.1"
 description = ""
 authors = ["Tyler Hoffman <tyler@memfault.com>"]
 readme = "README.md"

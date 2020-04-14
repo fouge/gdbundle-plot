@@ -4,8 +4,8 @@ import os
 PACKAGE_DIR = os.path.dirname(__file__)
 
 SCRIPT_PATHS = [
-    [PACKAGE_DIR, 'scripts', 'example.gdb'],
-    [PACKAGE_DIR, 'scripts', 'example.py']
+    [PACKAGE_DIR, 'scripts', 'example_gdb.gdb'],
+    [PACKAGE_DIR, 'scripts', 'example_gdb.py']
 ]
 
 def _abs_path(path):
