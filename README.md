@@ -1,4 +1,4 @@
-# gdbundle Plugin Example
+# gdbundle-example
 
 This is a [gdbundle](https://github.com/memfault/gdbundle) plugin example. It is not meant to be useful, but to serve as a reference for gdbundle plugin creators and curious individuals.
 
