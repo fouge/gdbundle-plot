@@ -1,11 +1,11 @@
 import gdb
 import os
 
-ROOT_DIR = os.path.dirname(__file__)
+PACKAGE_DIR = os.path.dirname(__file__)
 
 SCRIPT_PATHS = [
-    [ROOT_DIR, 'scripts', 'example.gdb'],
-    [ROOT_DIR, 'scripts', 'example.py']
+    [PACKAGE_DIR, 'scripts', 'example.gdb'],
+    [PACKAGE_DIR, 'scripts', 'example.py']
 ]
 
 def _abs_path(path):
