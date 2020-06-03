@@ -1,6 +1,8 @@
 import gdb
+import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
+import multiprocessing as mp
 
 _type_list = {
             # C types
@@ -26,20 +28,78 @@ _type_list = {
 
 _colors = ['r', 'b', 'g', 'c', 'm', 'y']
 
+class ProcessPlotter(object):
+    def __init__(self):
+        self.alive = False
+        pass
+
+    def terminate(self):
+        plt.close('all')
+
+    def call_back(self):
+        has_data = False
+        while self.pipe.poll():
+            axis = self.pipe.recv()
+            has_data = True
+            if axis is None:
+                self.ax.cla()
+            else:
+                self.ax.plot(range(0, len(axis[0])), axis[0], axis[1], label=axis[2])
+
+        if has_data:
+            self.ax.legend()
+            self.fig.canvas.draw()
+        return True
+
+    def __call__(self, pipe):
+        print('starting plotter...')
+        self.alive = True
+
+        self.pipe = pipe
+        self.fig, self.ax = plt.subplots()
+        timer = self.fig.canvas.new_timer(interval=1000)
+        timer.add_callback(self.call_back)
+        timer.start()
+
+        plt.show()
+
+        self.alive = False
+
+    def is_alive(self):
+        return self.alive
+
+
 class Plot(gdb.Command):
     """Plots array passed as argument (variable name)"""
 
     def __init__(self):
         super(Plot, self).__init__('plot', gdb.COMMAND_USER)
+        self.plotprocess = None
+
+        self.plot_pipe, self.plotter_pipe = mp.Pipe()
+        self.plotter = None
+        self.plot_process = None
 
     def invoke(self, _unicode_args, _from_tty):
-
+        if self.plotter == None:
+            self.plotter = ProcessPlotter()
+            self.plot_process = mp.Process(
+                target=self.plotter, args=(self.plotter_pipe,), daemon=True)
+            self.plot_process.start()
+        elif not self.plotter.is_alive():
+            self.plotter = ProcessPlotter()
+            self.plot_process = mp.Process(
+                target=self.plotter, args=(self.plotter_pipe,), daemon=True)
+            self.plot_process.start()
 
         if len(_unicode_args) == 0:
             print("Wrong arguments, pass variable name.")
             return -1
 
         args = _unicode_args.split(' ')
+
+        # Reset the current graph
+        self.plot_pipe.send(None)
 
         for i in range(0, len(args)):
             val = gdb.parse_and_eval(args[i])
@@ -49,19 +109,22 @@ class Plot(gdb.Command):
 
             # Make sure we are plotting an array; type must be a string like: "[type; size]"
             if '[' in val_type and ']' in val_type:
-                array_type = val_type.replace('[', '').replace(']', '').split("; ")
+                array_type_size = val_type.replace('[', '').replace(']', '').split("; ")
+                array_size = int(array_type_size[1])
+                array_type = array_type_size[0]
 
-                print("Parsing array of size {}".format(int(array_type[1])))
-                for j in range(0, int(array_type[1])):
-                    value = _type_list[array_type[0]](val[j])
-                    array.append(_type_list[array_type[0]](val[j]))
+                # For Rust, remove 'mut' in type
+                if 'mut' in array_type:
+                    array_type = array_type.split(' ')[1];
 
-                print(array)
-                plt.plot(array, _colors[i % len(_colors)],label=args[i])
+                print("Parsing array of size {}, type {}".format(array_size, array_type))
+
+                for j in range(0, array_size):
+                    value = _type_list[array_type](val[j])
+                    array.append(_type_list[array_type](val[j]))
+
+                self.plot_pipe.send([array, _colors[i % len(_colors)], args[i]])
             else:
                 print("Variable \'{}\' is not an array".format(args[i]))
-
-        plt.legend(loc='upper right')
-        plt.show()
 
 Plot()
