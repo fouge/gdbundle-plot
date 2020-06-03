@@ -1,18 +1,20 @@
-# gdbundle-example
+# gdbundle-plot
 
-This is a [gdbundle](https://github.com/memfault/gdbundle) plugin example. It is not meant to be useful, but to serve as a reference for gdbundle plugin creators and curious individuals.
+This is a [gdbundle](https://github.com/memfault/gdbundle) plugin used to plot 1-D arrays in a graph.
 
 ## Compatibility
 
 - GDB
-- LLDB
+- LLDB: Not yet
 
 ## Installation
 
-After setting up [gdbundle](https://github.com/memfault/gdbundle), install the package from PyPi. 
+### From source
+
+After setting up [gdbundle](https://github.com/memfault/gdbundle), install the package using:
 
 ```
-$ pip install gdbundle-example
+$ poetry install
 ```
 
 If you've decided to manually manage your packages using the `gdbundle(include=[])` argument,
@@ -23,13 +25,6 @@ add it to the list of plugins.
 
 [...]
 import gdbundle
-plugins = ["example"]
+plugins = ["plot"]
 gdbundle.init(include=plugins)
-```
-
-## Building
-
-```
-$ poetry build
-$ poetry publish
 ```
