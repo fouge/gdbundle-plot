@@ -30,7 +30,6 @@ _colors = ['r', 'b', 'g', 'c', 'm', 'y']
 
 class ProcessPlotter(object):
     def __init__(self):
-        self.alive = False
         pass
 
     def terminate(self):
@@ -53,20 +52,15 @@ class ProcessPlotter(object):
 
     def __call__(self, pipe):
         print('starting plotter...')
-        self.alive = True
 
         self.pipe = pipe
         self.fig, self.ax = plt.subplots()
+
         timer = self.fig.canvas.new_timer(interval=1000)
         timer.add_callback(self.call_back)
         timer.start()
 
         plt.show()
-
-        self.alive = False
-
-    def is_alive(self):
-        return self.alive
 
 
 class Plot(gdb.Command):
@@ -74,31 +68,32 @@ class Plot(gdb.Command):
 
     def __init__(self):
         super(Plot, self).__init__('plot', gdb.COMMAND_USER)
-        self.plotprocess = None
-
         self.plot_pipe, self.plotter_pipe = mp.Pipe()
         self.plotter = None
         self.plot_process = None
 
     def invoke(self, _unicode_args, _from_tty):
+        # Check args
+        if len(_unicode_args) == 0:
+            print("Wrong arguments, pass variable name.")
+            return -1
+
+        # Make sure we start only one side process to display data
         if self.plotter == None:
             self.plotter = ProcessPlotter()
             self.plot_process = mp.Process(
                 target=self.plotter, args=(self.plotter_pipe,), daemon=True)
             self.plot_process.start()
-        elif not self.plotter.is_alive():
+        elif not self.plot_process.is_alive():
             self.plotter = ProcessPlotter()
             self.plot_process = mp.Process(
                 target=self.plotter, args=(self.plotter_pipe,), daemon=True)
             self.plot_process.start()
 
-        if len(_unicode_args) == 0:
-            print("Wrong arguments, pass variable name.")
-            return -1
-
+        # Parse arguments
         args = _unicode_args.split(' ')
 
-        # Reset the current graph
+        # Reset the current graph by sending a None message to process
         self.plot_pipe.send(None)
 
         for i in range(0, len(args)):
