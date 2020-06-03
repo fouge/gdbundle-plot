@@ -209,6 +209,8 @@ target/
 #   install all needed dependencies.
 #Pipfile.lock
 
+poetry.lock
+
 # celery beat schedule file
 celerybeat-schedule
 
