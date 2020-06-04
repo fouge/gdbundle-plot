@@ -100,6 +100,11 @@ class Plot(gdb.Command):
             val = gdb.parse_and_eval(args[i])
             val_type = str(val.type)
 
+            # If variable is reference to array, dereference it first
+            if "*" in val_type:
+                val = val.dereference()
+                val_type = val_type.replace('*', '')
+
             array = []
 
             # Make sure we are plotting an array; type must be a string like: "[type; size]"
