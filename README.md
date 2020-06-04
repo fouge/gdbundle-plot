@@ -28,3 +28,9 @@ import gdbundle
 plugins = ["plot"]
 gdbundle.init(include=plugins)
 ```
+
+## Usage
+
+```
+(gdb) plot var_name
+```
