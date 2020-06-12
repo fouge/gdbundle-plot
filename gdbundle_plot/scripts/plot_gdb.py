@@ -75,10 +75,10 @@ class Plot(gdb.Command):
     def invoke(self, _unicode_args, _from_tty):
         # Check args
         if len(_unicode_args) == 0:
-            print("Wrong arguments, pass variable name.")
+            print("Wrong arguments, pass one or several variables")
             return -1
 
-        # Make sure we start only one side process to display data
+        # Start one side process (and only one) to display data
         if self.plotter == None:
             self.plotter = ProcessPlotter()
             self.plot_process = mp.Process(
@@ -93,22 +93,33 @@ class Plot(gdb.Command):
         # Parse arguments
         args = _unicode_args.split(' ')
 
-        # Reset the current graph by sending a None message to process
+        # Reset the current graph by sending a None message to subprocess
         self.plot_pipe.send(None)
 
         for i in range(0, len(args)):
             val = gdb.parse_and_eval(args[i])
             val_type = str(val.type)
 
-            # If variable is reference to array, dereference it first
+            # Init variables for each new variables
+            array = []
+            array_size = None
+            array_type = None
+
+            # If variable is reference to array
+            #  - dereference it first
+            #  - get type and size
             if "*" in val_type:
                 val = val.dereference()
                 val_type = val_type.replace('*', '')
+            elif "&" in val_type:
+                array_size = int(val["length"])
+                val = val["data_ptr"]
+                array_type = val_type.replace('[', '').replace(']', '').replace('&', '')
 
-            array = []
-
-            # Make sure we are plotting an array; type must be a string like: "[type; size]"
-            if '[' in val_type and ']' in val_type:
+            # If variable is an array,
+            #  - val_type will be formatted: "[type; size]",
+            #  - parse it to get type and size
+            if '[' in val_type and ']' in val_type and "; " in val_type:
                 array_type_size = val_type.replace('[', '').replace(']', '').split("; ")
                 array_size = int(array_type_size[1])
                 array_type = array_type_size[0]
@@ -117,14 +128,20 @@ class Plot(gdb.Command):
                 if 'mut' in array_type:
                     array_type = array_type.split(' ')[1];
 
-                print("Parsing array of size {}, type {}".format(array_size, array_type))
+            # If everything went well and the variable can be parsed
+            #  - parse it
+            if array_size and array_type:
+                print("Parsing {}; array of size {}, type {}".format(args[i], array_size, array_type))
 
                 for j in range(0, array_size):
-                    value = _type_list[array_type](val[j])
                     array.append(_type_list[array_type](val[j]))
 
+                # Send to subprocess :
+                #  - array data
+                #  - color for pretty printing
+                #  - variable name for caption
                 self.plot_pipe.send([array, _colors[i % len(_colors)], args[i]])
             else:
-                print("Variable \'{}\' is not an array".format(args[i]))
+                print("Variable \'{}\' is not an array or cannot be parsed currently".format(args[i]))
 
 Plot()

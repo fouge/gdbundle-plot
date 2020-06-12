@@ -2,6 +2,10 @@
 
 This is a [gdbundle](https://github.com/memfault/gdbundle) plugin used to plot 1-D arrays in a graph.
 
+C and Rust types can be parsed using the plugin.
+
+One or several arrays can be plotted on the same graph.
+
 ## Compatibility
 
 - GDB
@@ -32,5 +36,5 @@ gdbundle.init(include=plugins)
 ## Usage
 
 ```
-(gdb) plot var_name
+(gdb) plot var1_name [var2_name ...]
 ```

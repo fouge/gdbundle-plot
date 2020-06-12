@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "gdbundle-plot"
-version = "0.0.2"
+version = "0.0.3"
 description = "Plot 1-D arrays"
 authors = ["Cyril Fougeray <cyril.fougeray@gmail.com>"]
 readme = "README.md"
